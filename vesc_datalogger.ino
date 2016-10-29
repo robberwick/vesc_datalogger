@@ -17,7 +17,7 @@
 // #define DEBUG
 
 unsigned long count;
-const int chipSelect = 10;
+const int chipSelect = 2;
 int greenLedPin = 15;
 int redLedPin = 16;
 bool shouldLog = true;
