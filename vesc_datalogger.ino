@@ -28,14 +28,17 @@ void setup() {
   pinMode(greenLedPin, OUTPUT);
   pinMode(redLedPin, OUTPUT);
 
-  //Setup UART port
-  Serial1.begin(115200);
-  Serial.begin(115200);
-
   #ifdef DEBUG
   //Setup debug port
   Serial.begin(115200);
   #endif
+
+  //Setup UART port
+  Serial1.begin(115200);
+
+  // Setup Radio port
+  Serial2.begin(115200);
+
 
   // see if the card is present and can be initialized:
   canLog = SD.begin(chipSelect);
