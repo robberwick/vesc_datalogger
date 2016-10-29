@@ -25,7 +25,7 @@ int ReceiveUartMessage(uint8_t* payloadReceived) {
 
 	//Messages <= 255 start with 2. 2nd byte is length
 	//Messages >255 start with 3. 2nd and 3rd byte is length combined with 1st >>8 and then &0xFF
-	 
+
 	int counter = 0;
 	int endMessage = 256;
 	bool messageRead = false;
@@ -61,9 +61,9 @@ int ReceiveUartMessage(uint8_t* payloadReceived) {
 			messageReceived[endMessage] = 0;
 #ifdef DEBUG
 			DEBUGSERIAL.println("End of message reached!");
-#endif			
+#endif
 			messageRead = true;
-			break; //Exit if end of message is reached, even if there is still more data in buffer. 
+			break; //Exit if end of message is reached, even if there is still more data in buffer.
 		}
 	}
 	bool unpacked = false;
@@ -202,7 +202,7 @@ bool VescUartGetValue(bldcMeasure& values) {
 void VescUartSetCurrent(float current) {
 	int32_t index = 0;
 	uint8_t payload[5];
-		
+
 	payload[index++] = COMM_SET_CURRENT ;
 	buffer_append_int32(payload, (int32_t)(current * 1000), &index);
 	PackSendPayload(payload, 5);
