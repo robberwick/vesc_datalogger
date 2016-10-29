@@ -13,8 +13,9 @@
 #include "datatypes.h"
 #include <SD.h>
 #include <SPI.h>
+#include <MegunoLink.h>
 
-// #define DEBUG
+#define DEBUG
 
 unsigned long count;
 const int chipSelect = 2;
@@ -22,6 +23,8 @@ int greenLedPin = 15;
 int redLedPin = 16;
 bool shouldLog = true;
 bool canLog = true;
+
+TimePlot myPlot("SetPoints", Serial2);
 
 void setup() {
   // Setup LED pin mode
@@ -37,8 +40,12 @@ void setup() {
   Serial1.begin(115200);
 
   // Setup Radio port
-  Serial2.begin(115200);
+  Serial2.begin(57600);
 
+  // Set up plot details
+  myPlot.SetTitle("Voltages");
+  myPlot.SetXlabel("Time");
+  myPlot.SetYlabel("Voltage(v)");
 
   // see if the card is present and can be initialized:
   canLog = SD.begin(chipSelect);
@@ -78,36 +85,34 @@ void logData() {
   // Attempt to open the file
   File dataFile = SD.open("dogfood.csv", FILE_WRITE);
   boolean haveUartData = VescUartGetValue(measuredValues);
-  canLog =  (haveUartData && dataFile);
-  if (canLog) {
-
+  if (haveUartData){
     String dataString = "";
     dataString += measuredValues.avgMotorCurrent;
-    dataString += ", ";
+    dataString += ",";
     dataString += measuredValues.avgInputCurrent;
-    dataString += ", ";
+    dataString += ",";
     dataString += measuredValues.dutyCycleNow;
-    dataString += ", ";
+    dataString += ",";
     dataString += measuredValues.rpm;
-    dataString += ", ";
+    dataString += ",";
     dataString += measuredValues.inpVoltage;
-    dataString += ", ";
+    dataString += ",";
     dataString += measuredValues.ampHours;
-    dataString += ", ";
+    dataString += ",";
     dataString += measuredValues.ampHoursCharged;
-    dataString += ", ";
+    dataString += ",";
     dataString += measuredValues.tachometer;
-    dataString += ", ";
+    dataString += ",";
     dataString += measuredValues.tachometerAbs;
-    dataString += ", ";
 
-    dataFile.println(dataString);
-    dataFile.close();
-    #ifdef LOGGING
-    // print to the serial port too:
-    // Serial.print("Loop: "); Serial.println(count++);
-    // SerialPrint(measuredValues);
-    // Serial.println(dataString);
-    #endif
+    // Can we log this to SD?
+    canLog =  (haveUartData && dataFile);
+    if (canLog) {
+      dataFile.println(dataString);
+      dataFile.close();
+    }
+
+    //Send over Radio
+    myPlot.SendFloatData("Input Voltage", measuredValues.inpVoltage, 2);
   }
 }
