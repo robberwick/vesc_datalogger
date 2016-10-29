@@ -1,4 +1,4 @@
-/*
+ /*
   Name:    vesc_datalogger.ino
   Created: 23/10/2016
   Author:  Rob Berwick
@@ -18,52 +18,42 @@
 
 unsigned long count;
 const int chipSelect = 10;
-int ledPin = 13;
+int greenLedPin = 15;
+int redLedPin = 16;
 bool doLogging = false;
 
 void setup() {
   // Setup LED pin mode
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, HIGH);
-  delay(500);
-  digitalWrite(ledPin, LOW);
-  delay(500);
-  digitalWrite(ledPin, HIGH);
-  delay(500);
-  digitalWrite(ledPin, LOW);
-  delay(500);
-  digitalWrite(ledPin, HIGH);
-  delay(500);
-  digitalWrite(ledPin, LOW);
-  delay(100);
+  pinMode(greenLedPin, OUTPUT);
+  pinMode(redLedPin, OUTPUT);
+
   //Setup UART port
   Serial1.begin(115200);
 
-#ifdef DEBUG
-  //SEtup debug port
+  #ifdef DEBUG
+  //Setup debug port
   Serial.begin(115200);
-#endif
+  #endif
 
   // see if the card is present and can be initialized:
   if (!SD.begin(chipSelect)) {
     Serial.println("Card failed, or not present");
-    // don't do anything more:
-    digitalWrite(ledPin, HIGH);
-    return;
-  }
+
+  } else {
   Serial.println("card initialized.");
   doLogging = true;
   Serial.println("Started SD card");
-
+  }
+  // Set the led status
+  lightLeds();
 }
 
-
+struct bldcMeasure measuredValues;
 
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
 //// the loop function runs over and over again until power down or reset
 void loop() {
-
 
   if (doLogging) {
     if (VescUartGetValue(measuredValues)) {
@@ -111,3 +101,9 @@ void loop() {
     }
   }
 }
+
+void lightLeds(){
+  digitalWrite(redLedPin, !doLogging);
+  digitalWrite(greenLedPin, doLogging);
+}
+
