@@ -15,14 +15,19 @@
 #include <SPI.h>
 #include <MegunoLink.h>
 
-#define DEBUG
+// #define DEBUG
 
 unsigned long count;
 const int chipSelect = 2;
 int greenLedPin = 15;
 int redLedPin = 16;
+int logEnablePin = 23;
 bool shouldLog = true;
-bool canLog = true;
+bool loggingStatus = true;
+long numReadings = 0;
+boolean haveUartData = false;
+String dataString = "";
+const int CHUNK_SIZE = 10;
 
 TimePlot myPlot("SetPoints", Serial2);
 
@@ -30,11 +35,12 @@ void setup() {
   // Setup LED pin mode
   pinMode(greenLedPin, OUTPUT);
   pinMode(redLedPin, OUTPUT);
+  pinMode(logEnablePin, INPUT_PULLUP);
 
-  #ifdef DEBUG
+  // #ifdef DEBUG
   //Setup debug port
   Serial.begin(115200);
-  #endif
+  // #endif
 
   //Setup UART port
   Serial1.begin(115200);
@@ -48,8 +54,8 @@ void setup() {
   myPlot.SetYlabel("Voltage(v)");
 
   // see if the card is present and can be initialized:
-  canLog = SD.begin(chipSelect);
-  if (canLog) {
+  loggingStatus = SD.begin(chipSelect);
+  if (loggingStatus) {
     Serial.println("card initialized.");
     Serial.println("Started SD card");
   } else {
@@ -63,56 +69,88 @@ struct bldcMeasure measuredValues;
 
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
-//// the loop function runs over and over again until power down or reset
+// the loop function runs over and over again until power down or reset
 void loop() {
+  shouldLog = !(digitalRead(logEnablePin));
+  Serial.println(loggingStatus);
   if (shouldLog) {
-    logData();
+    takeReading();
+    Serial.println("************");
+    Serial.println(dataString);
+    // Increment Reading count
+    numReadings++;
+
+    // should we write?
+    if ((numReadings % CHUNK_SIZE) == 0 ) {
+      writeToDisk();
+      // reset dataString
+      dataString = "";
+    }
+
+    // Do telemetry
+    sendToRadio();
+
+  } else {
+    // force logging status to false
+    loggingStatus = false;
   }
   lightLeds();
 }
 
 void lightLeds(){
-  digitalWrite(redLedPin, !(canLog));
-  digitalWrite(greenLedPin, shouldLog);
+  digitalWrite(redLedPin, loggingStatus);
+  digitalWrite(greenLedPin, haveUartData);
 }
 
-void logData() {
-  // If there is a problem logging, attempt to re-initialise
-  // the sd card
-  if (!canLog){
-    SD.begin(chipSelect);
+void takeReading() {
+  haveUartData = VescUartGetValue(measuredValues);
+  if (!haveUartData) {
+    measuredValues.avgMotorCurrent = 0.0;
+    measuredValues.avgInputCurrent = 0.0;
+    measuredValues.dutyCycleNow = 0.0;
+    measuredValues.rpm = 0;
+    measuredValues.inpVoltage = 0.0;
+    measuredValues.ampHours = 0.0;
+    measuredValues.ampHoursCharged = 0.0;
+    measuredValues.tachometer = 0;
+    measuredValues.tachometerAbs = 0;
   }
-  // Attempt to open the file
+
+  // Append reading to data string
+  dataString += numReadings;
+  dataString += ",";
+  dataString += measuredValues.avgMotorCurrent;
+  dataString += ",";
+  dataString += measuredValues.avgInputCurrent;
+  dataString += ",";
+  dataString += measuredValues.dutyCycleNow;
+  dataString += ",";
+  dataString += measuredValues.rpm;
+  dataString += ",";
+  dataString += measuredValues.inpVoltage;
+  dataString += ",";
+  dataString += measuredValues.ampHours;
+  dataString += ",";
+  dataString += measuredValues.ampHoursCharged;
+  dataString += ",";
+  dataString += measuredValues.tachometer;
+  dataString += ",";
+  dataString += measuredValues.tachometerAbs;
+  dataString += "\n";
+}
+
+void writeToDisk() {
   File dataFile = SD.open("dogfood.csv", FILE_WRITE);
-  boolean haveUartData = VescUartGetValue(measuredValues);
-  if (haveUartData){
-    String dataString = "";
-    dataString += measuredValues.avgMotorCurrent;
-    dataString += ",";
-    dataString += measuredValues.avgInputCurrent;
-    dataString += ",";
-    dataString += measuredValues.dutyCycleNow;
-    dataString += ",";
-    dataString += measuredValues.rpm;
-    dataString += ",";
-    dataString += measuredValues.inpVoltage;
-    dataString += ",";
-    dataString += measuredValues.ampHours;
-    dataString += ",";
-    dataString += measuredValues.ampHoursCharged;
-    dataString += ",";
-    dataString += measuredValues.tachometer;
-    dataString += ",";
-    dataString += measuredValues.tachometerAbs;
+  // Can we log this to SD?
+  Serial.print("Have dataFile: ");
+  Serial.print(dataFile);
+  loggingStatus = (shouldLog && dataFile);
+  // Attempt to open the file
+  dataFile.println(dataString);
+  dataFile.close();
+}
 
-    // Can we log this to SD?
-    canLog =  (haveUartData && dataFile);
-    if (canLog) {
-      dataFile.println(dataString);
-      dataFile.close();
-    }
-
+void sendToRadio() {
     //Send over Radio
     myPlot.SendFloatData("Input Voltage", measuredValues.inpVoltage, 2);
-  }
 }
