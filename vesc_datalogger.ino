@@ -72,11 +72,8 @@ struct bldcMeasure measuredValues;
 // the loop function runs over and over again until power down or reset
 void loop() {
   shouldLog = !(digitalRead(logEnablePin));
-  Serial.println(loggingStatus);
   if (shouldLog) {
     takeReading();
-    Serial.println("************");
-    Serial.println(dataString);
     // Increment Reading count
     numReadings++;
 
@@ -142,12 +139,11 @@ void takeReading() {
 void writeToDisk() {
   File dataFile = SD.open("dogfood.csv", FILE_WRITE);
   // Can we log this to SD?
-  Serial.print("Have dataFile: ");
-  Serial.print(dataFile);
   loggingStatus = (shouldLog && dataFile);
   // Attempt to open the file
   dataFile.println(dataString);
   dataFile.close();
+  Serial.print(dataString);
 }
 
 void sendToRadio() {
