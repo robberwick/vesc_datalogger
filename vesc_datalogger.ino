@@ -141,7 +141,7 @@ void writeToDisk() {
   // Can we log this to SD?
   loggingStatus = (shouldLog && dataFile);
   // Attempt to open the file
-  dataFile.println(dataString);
+  dataFile.print(dataString);
   dataFile.close();
   Serial.print(dataString);
 }
