@@ -19,7 +19,6 @@ along with this program.If not, see <http://www.gnu.org/licenses/>.
 #ifndef _VESCUART_h
 #define _VESCUART_h
 
-//#include "Config.h" 
 
 /*TThis library was created on an Adruinio 2560 with different serial ports to have a better possibility
 to debug. The serial ports are define with #define:
@@ -30,16 +29,16 @@ If you want to use debug, uncomment DEBUGSERIAL and define a port.*/
 
 #ifndef _CONFIG_h
 #define DEBUG
-#define SERIALIO Serial1  
+#define SERIALIO Serial1
 #define DEBUGSERIAL Serial
 
-#ifdef __AVR_ATmega2560__ 
-#define SERIALIO Serial1  
+#ifdef __AVR_ATmega2560__
+#define SERIALIO Serial1
 #define DEBUGSERIAL Serial
 #endif
 
 #ifdef ARDUINO_AVR_NANO
-#define SERIALIO Serial  
+#define SERIALIO Serial
 #define DEBUGSERIAL Serial
 #endif
 #endif
@@ -49,7 +48,7 @@ If you want to use debug, uncomment DEBUGSERIAL and define a port.*/
 #else
 #include "WProgram.h"
 #endif
- 
+
 #include "datatypes.h"
 #include "local_datatypes.h"
 ///PackSendPayload Packs the payload and sends it over Serial.
