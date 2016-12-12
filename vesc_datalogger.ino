@@ -13,7 +13,7 @@
 #include "datatypes.h"
 #include <SD.h>
 #include <SPI.h>
-#include <MegunoLink.h>
+// #include <MegunoLink.h>
 
 // #define DEBUG
 
@@ -28,8 +28,13 @@ long numReadings = 0;
 boolean haveUartData = false;
 String dataString = "";
 const int CHUNK_SIZE = 10;
+struct bldcMeasure measuredValues;
 
-TimePlot myPlot("SetPoints", Serial2);
+#define countof(a) (sizeof(a) / sizeof(a[0]))
+
+// TimePlot myPlot("SetPoints", Serial2);
+
+VescUart vesc1(&Serial1, &Serial);
 
 void setup() {
   // Setup LED pin mode
@@ -48,10 +53,10 @@ void setup() {
   // Setup Radio port
   Serial2.begin(57600);
 
-  // Set up plot details
-  myPlot.SetTitle("Voltages");
-  myPlot.SetXlabel("Time");
-  myPlot.SetYlabel("Voltage(v)");
+  // // Set up plot details
+  // myPlot.SetTitle("Voltages");
+  // myPlot.SetXlabel("Time");
+  // myPlot.SetYlabel("Voltage(v)");
 
   // see if the card is present and can be initialized:
   loggingStatus = SD.begin(chipSelect);
@@ -65,9 +70,6 @@ void setup() {
   lightLeds();
 }
 
-struct bldcMeasure measuredValues;
-
-#define countof(a) (sizeof(a) / sizeof(a[0]))
 
 // the loop function runs over and over again until power down or reset
 void loop() {
@@ -100,7 +102,7 @@ void lightLeds(){
 }
 
 void takeReading() {
-  haveUartData = VescUartGetValue(measuredValues);
+  haveUartData = vesc1.VescUartGetValue(measuredValues);
   if (!haveUartData) {
     measuredValues.avgMotorCurrent = 0.0;
     measuredValues.avgInputCurrent = 0.0;
@@ -148,5 +150,5 @@ void writeToDisk() {
 
 void sendToRadio() {
     //Send over Radio
-    myPlot.SendFloatData("Input Voltage", measuredValues.inpVoltage, 2);
+    // myPlot.SendFloatData("Input Voltage", measuredValues.inpVoltage, 2);
 }
