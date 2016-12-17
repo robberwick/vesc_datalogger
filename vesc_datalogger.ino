@@ -13,7 +13,7 @@
 #include "datatypes.h"
 #include <SD.h>
 #include <SPI.h>
-// #include <MegunoLink.h>
+#include <MegunoLink.h>
 
 // #define DEBUG
 
@@ -32,7 +32,7 @@ struct bldcMeasure measuredValues;
 
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
-// TimePlot myPlot("SetPoints", Serial2);
+TimePlot myPlot("SetPoints", Serial2);
 
 VescUart vesc1(&Serial1, &Serial);
 
@@ -42,10 +42,8 @@ void setup() {
   pinMode(redLedPin, OUTPUT);
   pinMode(logEnablePin, INPUT_PULLUP);
 
-  // #ifdef DEBUG
   //Setup debug port
   Serial.begin(115200);
-  // #endif
 
   //Setup UART port
   Serial1.begin(115200);
@@ -53,10 +51,10 @@ void setup() {
   // Setup Radio port
   Serial2.begin(57600);
 
-  // // Set up plot details
-  // myPlot.SetTitle("Voltages");
-  // myPlot.SetXlabel("Time");
-  // myPlot.SetYlabel("Voltage(v)");
+  // Set up plot details
+  myPlot.SetTitle("Voltages");
+  myPlot.SetXlabel("Time");
+  myPlot.SetYlabel("Voltage(v)");
 
   // see if the card is present and can be initialized:
   loggingStatus = SD.begin(chipSelect);
@@ -150,5 +148,5 @@ void writeToDisk() {
 
 void sendToRadio() {
     //Send over Radio
-    // myPlot.SendFloatData("Input Voltage", measuredValues.inpVoltage, 2);
+    myPlot.SendFloatData("Input Voltage", measuredValues.inpVoltage, 2);
 }
