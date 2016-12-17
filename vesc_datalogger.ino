@@ -32,7 +32,7 @@ struct bldcMeasure measuredValues;
 
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
-TimePlot myPlot("SetPoints", Serial2);
+TimePlot inputVoltagePlot("SetPoints", Serial2);
 
 VescUart vesc1(&Serial1, &Serial);
 
@@ -52,9 +52,9 @@ void setup() {
   Serial2.begin(57600);
 
   // Set up plot details
-  myPlot.SetTitle("Voltages");
-  myPlot.SetXlabel("Time");
-  myPlot.SetYlabel("Voltage(v)");
+  inputVoltagePlot.SetTitle("Input Voltages");
+  inputVoltagePlot.SetXlabel("Time");
+  inputVoltagePlot.SetYlabel("Voltage (V)");
 
   // see if the card is present and can be initialized:
   loggingStatus = SD.begin(chipSelect);
@@ -148,5 +148,5 @@ void writeToDisk() {
 
 void sendToRadio() {
     //Send over Radio
-    myPlot.SendFloatData("Input Voltage", measuredValues.inpVoltage, 2);
+    inputVoltagePlot.SendFloatData("Input Voltage", measuredValues.inpVoltage, 2);
 }
