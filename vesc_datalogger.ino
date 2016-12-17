@@ -75,7 +75,7 @@ void setup() {
 void loop() {
   shouldLog = !(digitalRead(logEnablePin));
   if (shouldLog) {
-    takeReading();
+    takeReading(&vesc1);
     // Increment Reading count
     numReadings++;
 
@@ -101,8 +101,8 @@ void lightLeds(){
   digitalWrite(greenLedPin, haveUartData);
 }
 
-void takeReading() {
-  haveUartData = vesc1.VescUartGetValue(measuredValues);
+void takeReading(VescUart *vesc) {
+  haveUartData = vesc->VescUartGetValue(measuredValues);
   if (!haveUartData) {
     measuredValues.avgMotorCurrent = 0.0;
     measuredValues.avgInputCurrent = 0.0;
