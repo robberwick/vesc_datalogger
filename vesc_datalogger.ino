@@ -35,6 +35,7 @@ struct bldcMeasure measuredValues;
 TimePlot inputVoltagePlot("SetPoints", Serial2);
 
 VescUart vesc1(&Serial1, &Serial);
+VescUart vesc2(&Serial3, &Serial);
 
 void setup() {
   // Setup LED pin mode
@@ -45,11 +46,12 @@ void setup() {
   //Setup debug port
   Serial.begin(115200);
 
-  //Setup UART port
-  Serial1.begin(115200);
-
   // Setup Radio port
   Serial2.begin(57600);
+
+  //Setup UART ports
+  Serial1.begin(115200);
+  Serial3.begin(115200);
 
   // Set up plot details
   inputVoltagePlot.SetTitle("Input Voltages");
